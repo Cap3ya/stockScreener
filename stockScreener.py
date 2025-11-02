@@ -99,11 +99,8 @@ class TickerAnalyzer:
             dat = yf.Ticker(ticker)
             df = dat.history(period="1y", interval="1d", auto_adjust=True)
 
-            if df.empty or not {'Close', 'Volume'}.issubset(df.columns):
+            if df.empty or not {'Close', 'Volume', "High", "Low"}.issubset(df.columns):
                 raise ValueError("No valid OHLCV data")
-
-            # --- Close rank ---
-            close_rank = df['Close'].rank(pct=True).iloc[-1].round(3)
 
             # --- Price Volume ---
             df['DollarVolume'] = df['Volume'] * df['Close']
@@ -115,12 +112,19 @@ class TickerAnalyzer:
             std_return = df['Returns'].std()
 
             sharpe = 0 if std_return == 0 else mean_return / std_return
+
+            # --- Parkinson Volatility ---
+            parkinson = (np.log(df["High"] / df["Low"]) ** 2) / (4.0 * np.log(2.0))
+            df["Parkinson"] = parkinson.rolling(window=21).mean()
+            parkinson = np.sqrt(df["Parkinson"].iloc[-1]) * np.sqrt(365)
+            parkinson_pctl = df['Parkinson'].rank(pct=True).iloc[-1].round(2)
                                     
             return {
                 'Ticker': ticker,
-                'CloseRank': close_rank,
                 '$Volume': dollar_volume,
                 'Sharpe': sharpe,
+                'Parkinson': round(parkinson, 2), 
+                'ParkinsonPctl': parkinson_pctl,
             }
 
         except Exception as e:
@@ -161,24 +165,23 @@ class AnalysisOrchestrator:
 
         df = pd.DataFrame(self.results)
         # --- Compute cross-sectional percentile ---
-        df['CloseRankPctl'] = df['CloseRank'].rank(pct=True).round(3)
         df['$VolumePctl'] = df['$Volume'].rank(pct=True).round(3)
         df['SharpePctl'] = df['Sharpe'].rank(pct=True).round(3)
         # --- Remove raw column to clean up output ---
-        df.drop(columns=['CloseRank'], inplace=True)
         df.drop(columns=['$Volume'], inplace=True)
         df.drop(columns=['Sharpe'], inplace=True)
         # --- Composite metrics ---
-        df['$VolxCRankxSharpe'] = (df['$VolumePctl'] * df['CloseRankPctl'] ** df['SharpePctl']).round(3)
+        df['$VolxSharpe'] = (df['$VolumePctl'] * df['SharpePctl']).round(3)
         # --- Sort by the composite metric ---
-        df = df.sort_values(by='$VolxCRankxSharpe', ascending=False)
+        df = df.sort_values(by='$VolxSharpe', ascending=False)
         # --- Reorder columns ---
         desired_order = [
             'Ticker',
-            'CloseRankPctl',
             '$VolumePctl',
             'SharpePctl',
-            '$VolxCRankxSharpe',
+            '$VolxSharpe',
+            'Parkinson',
+            'ParkinsonPctl'
         ]
         df = df[[col for col in desired_order if col in df.columns]]
 
