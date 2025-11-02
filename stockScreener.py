@@ -114,17 +114,21 @@ class TickerAnalyzer:
             sharpe = 0 if std_return == 0 else mean_return / std_return
 
             # --- Parkinson Volatility ---
-            parkinson = (np.log(df["High"] / df["Low"]) ** 2) / (4.0 * np.log(2.0))
-            df["Parkinson"] = parkinson.rolling(window=21).mean()
-            parkinson = np.sqrt(df["Parkinson"].iloc[-1]) * np.sqrt(365)
-            parkinson_pctl = df['Parkinson'].rank(pct=True).iloc[-1].round(2)
-                                    
+            df["Parkinson_Var"] = (np.log(df["High"] / df["Low"]) ** 2) / (4.0 * np.log(2.0))
+            df["Parkinson_Vol"] = np.sqrt(df["Parkinson_Var"])
+            # 21-day rolling average variance
+            df["AvgVar_21"] = df["Parkinson_Var"].rolling(window=21).mean()
+            # Annualized historical volatility
+            historical_volatility = np.sqrt(df["AvgVar_21"].iloc[-1]) * np.sqrt(365)
+            # Percentile of most recent volatility
+            historical_volatility_pctl = df["Parkinson_Vol"].rank(pct=True).iloc[-1].round(2)                                    
+            
             return {
                 'Ticker': ticker,
                 '$Volume': dollar_volume,
                 'Sharpe': sharpe,
-                'Parkinson': round(parkinson, 2), 
-                'ParkinsonPctl': parkinson_pctl,
+                'Parkinson': round(historical_volatility, 2), 
+                'ParkinsonPctl': historical_volatility_pctl,
             }
 
         except Exception as e:
@@ -150,7 +154,7 @@ class AnalysisOrchestrator:
             
     def run(self):
         bad_tickers = self.bad_ticker_manager.load()
-        tickers = [t for t in self.ticker_source.get_active_tickers() if t not in bad_tickers]
+        tickers = [t for t in self.ticker_source.get_active_tickers() if t not in bad_tickers][:100]
 
         logger.info(f"Processing {len(tickers)} tickers...")
         for ticker in tqdm(tickers, desc="Tickers", unit="ticker"):
