@@ -123,7 +123,7 @@ class TickerAnalyzer:
             current_parkinson_vol = df["Parkinson_Vol_21d_Annualized"].iloc[-1]
             # Percentile of current volatility vs historical daily volatilities
             vol_percentile = df["Parkinson_Vol_21d_Annualized"].rank(pct=True).iloc[-1].round(2)            
-            
+
             return {
                 'Ticker': ticker,
                 '$Volume': dollar_volume,
@@ -186,7 +186,7 @@ class AnalysisOrchestrator:
             'SharpePctl',
             '$VolxSharpe',
             'Parkinson',
-            'ParkinsonPctl'
+            'ParkinsonPctl',
         ]
         df = df[[col for col in desired_order if col in df.columns]]
 
