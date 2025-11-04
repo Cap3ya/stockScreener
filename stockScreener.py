@@ -109,26 +109,23 @@ class TickerAnalyzer:
             # --- Sharpe Ratio ---
             df['Returns'] = np.log(df['Close'] / df['Close'].shift(1))
             mean_return = df['Returns'].mean()
-            std_return = df['Returns'].std()
+            std_return =  df['Returns'].std()
 
             sharpe = 0 if std_return == 0 else mean_return / std_return
 
             # --- Parkinson Volatility ---
             df["Parkinson_Var"] = (np.log(df["High"] / df["Low"]) ** 2) / (4.0 * np.log(2.0))
-            df["Parkinson_Vol_Daily"] = np.sqrt(df["Parkinson_Var"])
-            # 21-day rolling average variance, then annualize
-            df["AvgVar_21"] = df["Parkinson_Var"].rolling(window=21).mean()
-            df["Parkinson_Vol_21d_Annualized"] = np.sqrt(df["AvgVar_21"] * 365)
-            # Current annualized Parkinson volatility
-            current_parkinson_vol = df["Parkinson_Vol_21d_Annualized"].iloc[-1]
-            # Percentile of current volatility vs historical daily volatilities
-            vol_percentile = df["Parkinson_Vol_21d_Annualized"].rank(pct=True).iloc[-1].round(2)            
+            df["Parkinson_Vol"] = np.sqrt(df["Parkinson_Var"] * 365)
+            df["AvgVol_21"] = df["Parkinson_Vol"].ewm(span=min(len(df["Parkinson_Vol"]), 21)).mean()
+            # Current annualized Parkinson volatility and percentile
+            current_parkinson_vol = df["AvgVol_21"].iloc[-1].round(2)
+            vol_percentile = df["AvgVol_21"].rank(pct=True).iloc[-1].round(2)
 
             return {
                 'Ticker': ticker,
                 '$Volume': dollar_volume,
                 'Sharpe': sharpe,
-                'Parkinson': round(current_parkinson_vol, 2), 
+                'Parkinson': current_parkinson_vol, 
                 'ParkinsonPctl': vol_percentile,
             }
 
