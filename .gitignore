@@ -1,3 +1,8 @@
 # Python cache files
 __pycache__/
 *.py[cod]
+
+# Output files
+.stockScreener.log
+stockScreener_Output.csv
+stockScreener_badTickers.txt
