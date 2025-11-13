@@ -27,7 +27,7 @@ class AnalysisOrchestrator:
 
     def run(self):
         bad_tickers = self.bad_ticker_manager.load()
-        tickers = [t for t in self.ticker_source.get_active_tickers() if t not in bad_tickers][:100]
+        tickers = [t for t in self.ticker_source.get_active_tickers() if t not in bad_tickers]
 
         self.logger.info(f"Processing {len(tickers)} tickers...")
         for ticker in tqdm(tickers, desc="Tickers", unit="ticker"):
