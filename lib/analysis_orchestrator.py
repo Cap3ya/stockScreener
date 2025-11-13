@@ -42,10 +42,10 @@ class AnalysisOrchestrator:
 
         df = pd.DataFrame(self.results)
         df["$Volume(M)"] = (df["$Volume"] / 1_000_000).round(2)  # Convert to millions
-        df['$VolumePctl'] = df['$Volume'].rank(pct=True).round(3)
-        df['SharpePctl'] = df['Sharpe'].rank(pct=True).round(3)
+        # df['$VolumePctl'] = df['$Volume'].rank(pct=True).round(3)
+        # df['SharpePctl'] = df['Sharpe'].rank(pct=True).round(3)
         # df.drop(columns=['$Volume', 'Sharpe'], inplace=True)
-        df['$VolxSharpe'] = (df['$VolumePctl'] * df['SharpePctl']).round(3)
+        # df['$VolxSharpe'] = (df['$VolumePctl'] * df['SharpePctl']).round(3)
 
         df = df.sort_values(by='StreakCount', ascending=False)
         # desired_order = [

@@ -30,18 +30,18 @@ class TickerAnalyzer:
                 return "SKIP"
 
             # --- Sharpe Ratio ---
-            df['Returns'] = np.log(df['Close'] / df['Close'].shift(1))
-            mean_return = df['Returns'].mean()
-            std_return = df['Returns'].std()
-            sharpe = 0 if std_return == 0 else mean_return / std_return
+            # df['Returns'] = np.log(df['Close'] / df['Close'].shift(1))
+            # mean_return = df['Returns'].mean()
+            # std_return = df['Returns'].std()
+            # sharpe = 0 if std_return == 0 else mean_return / std_return
 
             # --- Parkinson Volatility ---
-            df["Parkinson_Var"] = (np.log(df["High"] / df["Low"]) ** 2) / (4.0 * np.log(2.0))
-            df["Parkinson_Vol"] = np.sqrt(df["Parkinson_Var"] * 365)
-            df["AvgVol_21"] = df["Parkinson_Vol"].ewm(span=min(len(df), 21)).mean()
+            # df["Parkinson_Var"] = (np.log(df["High"] / df["Low"]) ** 2) / (4.0 * np.log(2.0))
+            # df["Parkinson_Vol"] = np.sqrt(df["Parkinson_Var"] * 365)
+            # df["AvgVol_21"] = df["Parkinson_Vol"].ewm(span=min(len(df), 21)).mean()
 
-            current_parkinson_vol = df["AvgVol_21"].iloc[-1].round(2)
-            vol_percentile = df["AvgVol_21"].rank(pct=True).iloc[-1].round(2)
+            # current_parkinson_vol = df["AvgVol_21"].iloc[-1].round(2)
+            # vol_percentile = df["AvgVol_21"].rank(pct=True).iloc[-1].round(2)
 
             # --- Consecutive New Highs / Lows ---
             df['Prev_High'] = df['High'].shift(1)
@@ -79,9 +79,9 @@ class TickerAnalyzer:
             return {
                 'Ticker': ticker,
                 '$Volume': dollar_volume,
-                'Sharpe': sharpe,
-                'Parkinson': current_parkinson_vol,
-                'ParkinsonPctl': vol_percentile,
+                # 'Sharpe': sharpe,
+                # 'Parkinson': current_parkinson_vol,
+                # 'ParkinsonPctl': vol_percentile,
                 'StreakCount': streak_count,
                 'StreakSource': streak_source,
             }
