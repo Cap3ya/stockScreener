@@ -20,6 +20,8 @@ class AnalysisOrchestrator:
         result = self.analyzer.analyze(ticker)
         if result is None:
             self.new_bad_tickers.add(ticker)
+        elif result == "SKIP":
+            return
         else:
             self.results.append(result)
 
