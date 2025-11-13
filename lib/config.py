@@ -6,7 +6,7 @@ class Config:
     OUTPUT_DIR = os.path.join(PROJECT_ROOT, "output")
 
     VALID_SUFFIXES = (" Stock", " Shares")
-    LOG_FILE = os.path.join(OUTPUT_DIR, ".stockScreener.log")
+    LOG_FILE = os.path.join(OUTPUT_DIR, "stockScreener.log")
     CSV_FILE = os.path.join(OUTPUT_DIR, "stockScreener.csv")
     BAD_TICKERS_FILE = os.path.join(OUTPUT_DIR, "stockScreener_badTickers.txt")
 
