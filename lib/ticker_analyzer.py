@@ -1,6 +1,7 @@
 import yfinance as yf
 import numpy as np
 import pandas as pd
+from .config import Config
 
 class TickerAnalyzer:
     """Analyzes a single ticker using price and volatility metrics."""
@@ -11,14 +12,25 @@ class TickerAnalyzer:
     def analyze(self, ticker: str):
         try:
             dat = yf.Ticker(ticker)
-            df = dat.history(period="1y", interval="1d", auto_adjust=True)
+            df = dat.history(
+                period=f"{Config.PERIOD_DAYS}d", 
+                interval="1d", 
+                auto_adjust=True, 
+                # progress=False
+            )
 
-            if df.empty or not {'Close', 'Volume', "High", "Low"}.issubset(df.columns):
+            print(df.head())
+
+            if df.empty or not {'Open', 'High', 'Low', 'Close', 'Volume'}.issubset(df.columns):
                 raise ValueError("No valid OHLCV data")
             
             # --- Price Volume ---
             df['DollarVolume'] = df['Volume'] * df['Close']
             dollar_volume = df['DollarVolume'].iloc[-1]
+            # --- Skip illiquid tickers ---
+            if dollar_volume < Config.MIN_DOLLAR_VOLUME:
+                self.logger.info(f"{ticker}: Skipped (low liquidity, ${dollar_volume:,.0f})")
+                return "SKIP"
 
             # --- Sharpe Ratio ---
             df['Returns'] = np.log(df['Close'] / df['Close'].shift(1))
