@@ -16,10 +16,7 @@ class TickerAnalyzer:
                 period=f"{Config.PERIOD_DAYS}d", 
                 interval="1d", 
                 auto_adjust=True, 
-                # progress=False
             )
-
-            print(df.head())
 
             if df.empty or not {'Open', 'High', 'Low', 'Close', 'Volume'}.issubset(df.columns):
                 raise ValueError("No valid OHLCV data")
